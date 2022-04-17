@@ -5,17 +5,17 @@ import CartContext from './cart-context';
 const defaultCartState = { items: [], totalAmount: 0 };
 
 const cartReducer = (state, action) => {
+  let updatedItems = [...state.items];
+
   switch (action.type) {
-    case 'ADD':
-      let updatedItems = [...state.items];
-
-      const updatedTotalAmount =
-        state.totalAmount + action.item.price * action.item.amount;
-
+    case 'ADD': {
       const existingCartItemIndex = state.items.findIndex(
         (item) => item.id === action.item.id
       );
       const existingCartItem = updatedItems[existingCartItemIndex];
+
+      const updatedTotalAmount =
+        state.totalAmount + action.item.price * action.item.amount;
 
       if (existingCartItem) {
         updatedItems.splice(existingCartItemIndex, 1, {
@@ -30,8 +30,28 @@ const cartReducer = (state, action) => {
         items: updatedItems,
         totalAmount: updatedTotalAmount
       };
-    case 'REMOVE':
-      break;
+    }
+    case 'REMOVE': {
+      const existingCartItemIndex = state.items.findIndex(
+        (item) => item.id === action.id
+      );
+      const existingCartItem = updatedItems[existingCartItemIndex];
+
+      if (!existingCartItem) return;
+
+      const currentAmount = existingCartItem.amount;
+
+      if (currentAmount > 1) {
+        existingCartItem.amount--;
+      } else {
+        updatedItems.splice(existingCartItemIndex, 1);
+      }
+
+      return {
+        items: updatedItems,
+        totalAmount: state.totalAmount - existingCartItem.price
+      };
+    }
     default:
       return defaultCartState;
   }
